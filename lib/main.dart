@@ -5,25 +5,26 @@ import 'package:flutter/material.dart';
 import 'package:postgres/postgres.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'util.dart';
+
 var message;
+const String databaseHost = '47.250.10.195';
+const int databasePort = 5432;
+const String databaseName = 'amast_rnd';
+const String username = 'rnd_user';
+final String password = dotenv.get('SERVER_PASSWORD', fallback: '');
+
+var databaseConnection = PostgreSQLConnection(
+  databaseHost,
+  databasePort,
+  databaseName,
+  queryTimeoutInSeconds: 3600,
+  timeoutInSeconds: 3600,
+  username: username,
+  password: password,
+);
 
 initDatabaseConnection() async {
-  const String databaseHost = '47.250.10.195';
-  const int databasePort = 5432;
-  const String databaseName = 'amast_rnd';
-  const String username = 'rnd_user';
-  final String password = dotenv.get('SERVER_PASSWORD', fallback: '');
-
-  var databaseConnection = PostgreSQLConnection(
-    databaseHost,
-    databasePort,
-    databaseName,
-    queryTimeoutInSeconds: 3600,
-    timeoutInSeconds: 3600,
-    username: username,
-    password: password,
-  );
-
   try {
     // Open a connection to the PostgreSQL database
     await databaseConnection.open();
@@ -39,7 +40,7 @@ initDatabaseConnection() async {
     message = 'Error connecting to the database: $e';
   } finally {
     // Close the database connection when done
-    await databaseConnection.close();
+    // await databaseConnection.close();
   }
 }
 
@@ -85,7 +86,36 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: [Text(message)],
+          children: [
+            Text(message),
+            spaceVertical(15),
+            ElevatedButton(
+                onPressed: () async {
+                  // await databaseConnection.open();
+                  await databaseConnection.query('''
+CREATE TABLE public.table_test(
+  id text NOT NULL,
+  name text NULL,
+  email text NULL
+);
+''');
+
+                  print('query passed: 1');
+                  await databaseConnection.close();
+                  setState(() {
+                    message = 'Closed connection, reload to reconnect.';
+                  });
+                  print('close connection: 1');
+                },
+                child: Text('Create New Table')),
+            spaceVertical(10),
+            ElevatedButton(onPressed: () {}, child: Text('Read Table')),
+            spaceVertical(10),
+            ElevatedButton(onPressed: () {}, child: Text('Update Table')),
+            spaceVertical(10),
+            ElevatedButton(onPressed: () {}, child: Text('Delete Table')),
+            spaceVertical(10),
+          ],
         ),
       ),
     );
