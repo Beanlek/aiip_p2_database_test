@@ -114,6 +114,12 @@ CREATE TABLE public.table_test(
             ElevatedButton(onPressed: () {}, child: Text('Update Table')),
             spaceVertical(10),
             ElevatedButton(onPressed: () {}, child: Text('Delete Table')),
+            spaceVertical(100),
+            ElevatedButton(
+                onPressed: () async {
+                  await databaseConnection.close();
+                },
+                child: Text('Close Connection')),
             spaceVertical(10),
           ],
         ),
