@@ -79,49 +79,146 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  String response = '';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(message),
-            spaceVertical(15),
-            ElevatedButton(
-                onPressed: () async {
-                  // await databaseConnection.open();
-                  await databaseConnection.query('''
-CREATE TABLE public.table_test(
-  id text NOT NULL,
-  name text NULL,
-  email text NULL
-);
-''');
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(message),
+              spaceVertical(15),
+              ElevatedButton(
+                  onPressed: () async {
+                    // await databaseConnection.open();
+                    await databaseConnection.query('''
+        CREATE TABLE public.table_imran(
+          id serial primary key NOT NULL,
+          name text NULL,
+          email text NULL
+        );
+        ''');
 
-                  print('query passed: 1');
-                  await databaseConnection.close();
-                  setState(() {
-                    message = 'Closed connection, reload to reconnect.';
-                  });
-                  print('close connection: 1');
-                },
-                child: Text('Create New Table')),
-            spaceVertical(10),
-            ElevatedButton(onPressed: () {}, child: Text('Read Table')),
-            spaceVertical(10),
-            ElevatedButton(onPressed: () {}, child: Text('Update Table')),
-            spaceVertical(10),
-            ElevatedButton(onPressed: () {}, child: Text('Delete Table')),
-            spaceVertical(100),
-            ElevatedButton(
-                onPressed: () async {
-                  await databaseConnection.close();
-                },
-                child: Text('Close Connection')),
-            spaceVertical(10),
-          ],
+                    print('query passed: 1');
+                    await databaseConnection.close();
+                    setState(() {
+                      message = 'Closed connection, reload to reconnect.';
+                    });
+                    print('close connection: 1');
+                  },
+                  child: Text('Create New Table')),
+              spaceVertical(10),
+              ElevatedButton(
+                  onPressed: () async {
+                    await databaseConnection.query('''
+        DROP TABLE public.table_imran;
+        ''');
+                    print('query passed: 1');
+                    await databaseConnection.close();
+                    setState(() {
+                      message = 'Closed connection, reload to reconnect.';
+                    });
+                    print('close connection: 1');
+                  },
+                  child: Text('Delete Table')),
+              spaceVertical(100),
+              ElevatedButton(
+                  onPressed: () async {
+                    // await databaseConnection.open();
+                    await databaseConnection.query('''
+        INSERT INTO public.table_imran(name,email)
+        VALUES ('Imran', 'imr4nfazli@gmail.com');
+        ''');
+
+                    print('query passed: 1');
+                    await databaseConnection.close();
+                    setState(() {
+                      message = 'Closed connection, reload to reconnect.';
+                    });
+                    print('close connection: 1');
+                  },
+                  child: Text('Create Data')),
+              spaceVertical(10),
+              ElevatedButton(
+                  onPressed: () async {
+                    var postgresResponse = await databaseConnection.query('''
+        SELECT * from public.table_imran;
+        ''');
+                    print('query passed: 1');
+
+                    if (postgresResponse.isEmpty) {
+                      await databaseConnection.close();
+                      response = '===\nDatabase is empty.\n===';
+                      setState(() {
+                        message = 'Closed connection, reload to reconnect.';
+                      });
+                      return;
+                    }
+
+                    await databaseConnection.close();
+                    setState(() {
+                      message = 'Closed connection, reload to reconnect.';
+                      for (var row in postgresResponse) {
+                        String temp = '''
+        ===
+        id: ${row[0]}
+        name: ${row[1]}
+        email: ${row[2]}
+        ===
+        ''';
+                        response = '$response\n$temp';
+                      }
+                    });
+                    print(response);
+
+                    print('close connection: 1');
+                  },
+                  child: Text('Read Data')),
+              spaceVertical(10),
+              // Text('response\n$response'),
+              response == '' ? SizedBox() : Text(response),
+              response == '' ? SizedBox() : spaceVertical(10),
+              ElevatedButton(
+                  onPressed: () async {
+                    await databaseConnection.query('''
+        UPDATE public.table_imran SET email='fazli.salikin@gmail.com' WHERE id=2;
+        ''');
+                    print('query passed: 1');
+
+                    await databaseConnection.close();
+                    setState(() {
+                      message = 'Closed connection, reload to reconnect.';
+                    });
+                    print('close connection: 1');
+                  },
+                  child: Text('Update Data')),
+              spaceVertical(10),
+              ElevatedButton(
+                  onPressed: () async {
+                    await databaseConnection.query('''
+        DELETE FROM public.table_imran WHERE id>0;
+        ''');
+                    print('query passed: 1');
+
+                    await databaseConnection.close();
+                    setState(() {
+                      message = 'Closed connection, reload to reconnect.';
+                    });
+                    print('close connection: 1');
+                  },
+                  child: Text('Delete Data')),
+              spaceVertical(100),
+              ElevatedButton(
+                  onPressed: () async {
+                    await databaseConnection.close();
+                  },
+                  child: Text('Close Connection')),
+              spaceVertical(50),
+            ],
+          ),
         ),
       ),
     );
